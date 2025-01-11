@@ -35,11 +35,11 @@ Please provide answers to these questions using markdown notation and place them
 
 
 3. Please provide a link to the repository you are using for this class.
-https://github.com/ez342/CS283
+  https://github.com/ez342/CS283
 
 4. Briefly describe what you want to get out of this class.
-I hope to get more comfortable with using GitHub and tux, while developing a better understanding of the small details about the language, C. 
+  I hope to get more comfortable with using GitHub and tux, while developing a better understanding of the small details about the language, C. 
 
 5. Briefly describe any concerns you might be having with being successful in this class (if any).
-I do have some concerns with coding in C, as I have only used it in one class so far. With that being said, I still struggle a little with pointers and freeing memory. 
+  I do have some concerns with coding in C, as I have only used it in one class so far. With that being said, I still struggle a little with pointers and freeing memory. 
 
