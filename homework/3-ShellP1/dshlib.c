@@ -88,14 +88,6 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
                     strncat(cmd->args, " ", ARG_MAX - strlen(cmd->args) - 1);
                 }
                 strncat(cmd->args, sub_token, ARG_MAX - strlen(cmd->args) - 1);
-				/*
-				if (strlen(cmd->args) + strlen(sub_token) + 1 < ARG_MAX) {
-                    if (strlen(cmd->args) > 0) {
-                        strcat(cmd->args, " ");
-                    }
-                    strcat(cmd->args, sub_token);
-                }
-                */
 			}
 			sub_token = strtok_r(NULL, " ", &sub_saveptr);
 		}
