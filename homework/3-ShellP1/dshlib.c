@@ -40,11 +40,33 @@ void printList(command_list_t *clist) {
     }
 }
 
+char *trimwhitespace(char *str)
+{
+  char *end;
+
+  // Trim leading space
+  while(isspace((unsigned char)*str)) str++;
+
+  if(*str == 0)  // All spaces?
+    return str;
+
+  // Trim trailing space
+  end = str + strlen(str) - 1;
+  while(end > str && isspace((unsigned char)*end)) end--;
+
+  // Write new null terminator character
+  end[1] = '\0';
+
+  return str;
+}
+
+
 int build_cmd_list(char *cmd_line, command_list_t *clist)
 {
 	char *cmd_saveptr; 
     char *sub_saveptr;
-
+    
+    cmd_line = trimwhitespace(cmd_line);
 	char* cmd_token = strtok_r(cmd_line, PIPE_STRING, &cmd_saveptr);
 
 	//loops through based on pipes
