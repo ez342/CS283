@@ -100,12 +100,12 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
 				if (strcmp(clist->commands[clist->num].exe, EXIT_CMD) == 0) {
 					exit(OK);
 				}
-			} else {
-				
+			} else {				
 				if (strlen(cmd->args) + strlen(sub_token) + 1 >= ARG_MAX) {
                     return ERR_CMD_OR_ARGS_TOO_BIG;
                 }
-
+                
+                //space is added to nonempty args to separate args and appended to end
                 if (strlen(cmd->args) > 0) {
                     strncat(cmd->args, " ", ARG_MAX - strlen(cmd->args) - 1);
                 }
