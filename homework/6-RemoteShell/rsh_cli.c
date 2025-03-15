@@ -101,7 +101,8 @@ int exec_remote_cmd_loop(char *address, int port)
     // TODO set up cmd and response buffs
 	cmd_buff = (char *)malloc(RDSH_COMM_BUFF_SZ);
     rsp_buff = (char *)malloc(RDSH_COMM_BUFF_SZ);
-	if (!cmd_buff || !rsp_buff) {
+	//if (!cmd_buff || !rsp_buff) {					//CHANGED HERE
+	if (cmd_buff == NULL || rsp_buff == NULL) {
 		perror("malloc failed");
 		return ERR_MEMORY; 
 	}
@@ -129,6 +130,7 @@ int exec_remote_cmd_loop(char *address, int port)
 		int bytes_sent; 
 
 		bytes_sent = send(cli_socket, cmd_buff, send_len, 0);
+
 		if (bytes_sent < 0) {
 			perror("send failed");
 			return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_RDSH_COMMUNICATION); 
@@ -143,7 +145,9 @@ int exec_remote_cmd_loop(char *address, int port)
 			if (io_size == 0) {
 				break; 
 			}
-			is_eof = ((char)rsp_buff[io_size - 1] == eof_char) ? 1 : 0;
+
+			is_eof = (rsp_buff[io_size - 1] == eof_char);
+
 			if (is_eof) {
 				rsp_buff[io_size - 1] = '\0'; 
 			}

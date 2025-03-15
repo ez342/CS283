@@ -1,4 +1,3 @@
-
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
@@ -140,8 +139,8 @@ int boot_server(char *ifaces, int port){
     addr.sin_addr.s_addr = inet_addr(ifaces);
     addr.sin_port = htons(port);
 
-    ret = bind(svr_socket, (const struct sockaddr *) &addr, sizeof(struct sockaddr_in));
-	if (ret == -1) {
+    ret = bind(svr_socket, (const struct sockaddr *) &addr, sizeof(struct sockaddr_in));       
+    if (ret == -1) {
 		perror("bind");
 		return ERR_RDSH_COMMUNICATION;
 	}
@@ -214,8 +213,8 @@ int process_cli_requests(int svr_socket){
     	}
     }
 
-	stop_server(svr_socket);
-    //stop_server(cli_socket);
+	//stop_server(svr_socket);
+    stop_server(cli_socket);            //CHANGED HERE
     return OK_EXIT;
 }
 
@@ -276,7 +275,7 @@ int exec_client_requests(int cli_socket) {
 
     while(1) {
         // TODO use recv() syscall to get input
-		io_size = recv(cli_socket, io_buff, RDSH_COMM_BUFF_SZ, 0);
+		io_size = recv(cli_socket, io_buff, RDSH_COMM_BUFF_SZ, 0);     
 		if (io_size == -1) {
             free(io_buff);
             free(cmd_list);
@@ -284,9 +283,13 @@ int exec_client_requests(int cli_socket) {
 			return ERR_RDSH_COMMUNICATION;
 		}
 
-        io_buff[io_size] = '\0';        //NEW HERE
+		cmd_list->num = 0; 
+		rc = build_cmd_list(io_buff, cmd_list); 
 
-        // TODO build up a cmd_list
+		if (rc == OK) {
+			cmd_rc = rsh_execute_pipeline(cli_socket, cmd_list);
+		}
+
         if (strcmp(io_buff, EXIT_CMD) == 0) {
             free(io_buff);
     		rc = free_cmd_list(cmd_list);
@@ -297,14 +300,6 @@ int exec_client_requests(int cli_socket) {
     		rc = free_cmd_list(cmd_list);
             return OK_EXIT;
         }
-
-		cmd_list->num = 0; 
-        memset(cmd_list, 0, sizeof(command_list_t));                //NEW HERE
-		rc = build_cmd_list(io_buff, cmd_list); 
-		if (rc == OK) {
-			cmd_rc = rsh_execute_pipeline(cli_socket, cmd_list);
-            send_message_eof(cli_socket);                                   //NEW HERE
-		}
 
         // TODO send appropriate respones with send_message_string
         // - error constants for failures
@@ -441,7 +436,6 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
     for (int i = 0; i < clist->num; i++) {
         // TODO this is basically the same as the piped fork/exec assignment, except for where you connect the begin and end of the pipeline (hint: cli_sock)
 		// TODO HINT you can dup2(cli_sock with STDIN_FILENO, STDOUT_FILENO, etc.
-        cmd_buff_t *cmd = &clist->commands[i];
 
 		pids[i] = fork(); 
 		if (pids[i] == -1) {
@@ -450,10 +444,12 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
         }
         if (pids[i] == 0) { //child process
             //set up input pipe for all except first process
+            cmd_buff_t *cmd = &clist->commands[i];      //CHANGED HERE
+            
             if (i == 0) {
 				dup2(cli_sock, STDIN_FILENO);
             }
-			if (i == clist->num - 1 && !cmd->output_file) {                  //MADE CHANGE HERE
+			if (i == clist->num - 1 && !cmd->output_file) {                  
 				dup2(cli_sock, STDOUT_FILENO);
                 dup2(cli_sock, STDERR_FILENO);
 			}
@@ -474,7 +470,6 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
             //execute command
             execvp(cmd->argv[0], cmd->argv);
             perror("execvp");
-            send_message_eof(cli_sock);            //NEW HERE 
             exit(EXIT_FAILURE);
         }
     }
@@ -490,12 +485,14 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
         waitpid(pids[i], &pids_st[i], 0);
     }
 
+    /*
     int rc = send_message_eof(cli_sock);
     if (rc != OK) {
         printf(CMD_ERR_RDSH_COMM);
         close(cli_sock);
         return ERR_RDSH_COMMUNICATION;
     }
+    */
 
     //by default get exit code of last process
     //use this as the return value
